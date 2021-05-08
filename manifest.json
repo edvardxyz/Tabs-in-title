@@ -1,25 +1,11 @@
 {
-
     "manifest_version": 2,
     "name": "Tabs In Title",
     "version": "1.0",
     "description": "Used for firefox in kiosk mode with DWM to see tabs in title.",
-
     "background": {
         "scripts": ["bg.js"]
     },
-
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "cs.js"
-            ]
-        }
-    ],
-
     "permissions": [
         "<all_urls>",
         "activeTab",
