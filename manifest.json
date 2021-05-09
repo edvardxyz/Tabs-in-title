@@ -6,7 +6,6 @@
     "background": {
         "scripts": ["bg.js"]
     },
-
     "icons": {
         "48": "48.png",
         "96": "96.png"
