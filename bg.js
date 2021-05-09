@@ -5,25 +5,26 @@ browser.tabs.onActivated.addListener(listTabs);
 //browser.tabs.onDetached.addListener(listTabs);
 //browser.tabs.onAttached.addListener(listTabs);
 
-//var tempTitle;
-//var tabId = null;
-//
-//           if(tab.active){
-//               tempTitle = tab.title;
-//               tabId = tab.id;
-//          }
-//          if(tabId !== tab.id){
-//              changeTitelTemp(tabId, tempTitle);
-//          }
-
-
 function listTabs(){
+    const TabMaxLength = 125;
     getCurrentWindowTabs().then((tabs) => {
         let tabsList = '';
-
+        let varLength = TabMaxLength / tabs.length;
         for (let tab of tabs){
-            tabsList += tab.title;
+            if(tab.active){
+                tabsList += "|| >>" + truncateString(tab.title, varLength) + "<< ";
+                continue;
+            }
+            tabsList += "|| " + truncateString(tab.title, varLength);
         }
+        tabsList += `||
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0`;
         changeTitleWindow(tabs[0].windowId, tabsList);
     });
 }
@@ -32,22 +33,15 @@ function getCurrentWindowTabs(){
     return browser.tabs.query({currentWindow: true});
 }
 
+function truncateString(string, limit){
+    if(string.length > limit){
+        return string.substring(0, limit);
+    }else{
+        return string;
+    }
+}
+
 function changeTitleWindow(id, title){
     browser.windows.update(id, {titlePreface: title});
 }
 
-
-
-
-
-
-
-//function changeTitelTemp(id ,title){
-//    console.log(`document.title = '${title}';`);
-//    browser.tabs.executeScript(id, {code: `document.title = '${title}';`});
-//}
-//
-//function changeTitel(title){
-//    console.log(`document.title = '${title}';`);
-//    browser.tabs.executeScript({code: `document.title = '${title}';`});
-//}
