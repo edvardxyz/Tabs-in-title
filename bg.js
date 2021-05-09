@@ -1,11 +1,16 @@
-browser.tabs.onActivated.addListener(listTabs);
-//browser.tabs.onRemoved.addListener(listTabs);               // dont include removed tab
-//browser.tabs.onMoved.addListener(listTabs);
-//browser.tabs.onUpdated.addListener(listTabs);
-//browser.tabs.onDetached.addListener(listTabs);
-//browser.tabs.onAttached.addListener(listTabs);
+//browser.tabs.onCreated.addListener(listTabs);
+//browser.tabs.onHighlighted.addListener(listTabs);
 
-function listTabs(){
+browser.tabs.onMoved.addListener(listTabs);
+browser.tabs.onUpdated.addListener(listTabs);
+browser.tabs.onDetached.addListener(listTabs);
+browser.tabs.onAttached.addListener(listTabs);
+browser.tabs.onActivated.addListener(listTabs);
+browser.tabs.onRemoved.addListener(
+    (tabId) => { listTabs(tabId);
+});
+
+function listTabs(tabId){
     const TabMaxLength = 125;
     getCurrentWindowTabs().then((tabs) => {
         let tabsList = '';
@@ -13,6 +18,9 @@ function listTabs(){
         for (let tab of tabs){
             if(tab.active){
                 tabsList += "|| >>" + truncateString(tab.title, varLength) + "<< ";
+                continue;
+            }
+            if(arguments.length === 1 && tab.id === tabId){
                 continue;
             }
             tabsList += "|| " + truncateString(tab.title, varLength);

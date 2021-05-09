@@ -6,10 +6,15 @@
     "background": {
         "scripts": ["bg.js"]
     },
+
+    "icons": {
+        "48": "48.png",
+        "96": "96.png"
+    },
+
     "permissions": [
         "<all_urls>",
         "activeTab",
-        "tabs",
-        "storage"
+        "tabs"
     ]
 }
