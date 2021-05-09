@@ -1,8 +1,8 @@
 {
     "manifest_version": 2,
     "name": "Tabs In Title",
-    "version": "1.0",
-    "description": "Used for firefox in kiosk mode with DWM to see tabs in title.",
+    "version": "1.1",
+    "description": "Used in full-screen or kiosk mode with DWM to see tabs in title. And therefore in dwm bar.",
     "background": {
         "scripts": ["bg.js"]
     },
@@ -13,8 +13,6 @@
     },
 
     "permissions": [
-        "<all_urls>",
-        "activeTab",
         "tabs"
     ]
 }
