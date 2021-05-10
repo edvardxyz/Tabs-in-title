@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tabs In Title",
-    "version": "1.1",
+    "version": "1.2",
     "description": "Used in full-screen or kiosk mode with DWM to see tabs in title. And therefore in dwm bar.",
     "background": {
         "scripts": ["bg.js"]
@@ -10,8 +10,16 @@
         "48": "48.png",
         "96": "96.png"
     },
-
+    "options_ui": {
+        "page": "options.html"
+    },
     "permissions": [
-        "tabs"
-    ]
+        "tabs",
+        "storage"
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "tabsintitle@tabs-intitle.com"
+        }
+    }
 }
