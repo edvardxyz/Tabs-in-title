@@ -42,6 +42,24 @@ function restoreDefaults(){
     restoreOptions();
 }
 
+function onCreated(tab){
+    console.log(`Created new tab: ${tab.id}`)
+    browser.tabs.onRemoved.addListener(
+    (tabId) => {
+        if(tabId == tab.id){
+            restoreOptions();
+        };
+    });
+}
+
+function openPage(){
+    var creating = browser.tabs.create({
+        url: "page/index.html"
+    });
+    creating.then(onCreated);
+}
+
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("form").addEventListener("submit", saveOptions);
 document.getElementById("restore").addEventListener("click", restoreDefaults);
+document.getElementById("findsize").addEventListener("click", openPage);

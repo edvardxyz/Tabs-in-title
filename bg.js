@@ -55,7 +55,7 @@ async function listTabs(tabId){
             \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
             \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
             \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0`;
-    await new Promise(r => setTimeout(r, 120));// TODO: find out how to fix this sh*t
+    //await new Promise(r => setTimeout(r, 120));// TODO: find out how to fix this sh*t
     getCurrentWindowTabs().then((tabs) => {
         //tabs = tabs.filter(tab => tab.id != tabId);
         let tabsList = '';
