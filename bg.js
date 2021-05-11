@@ -5,6 +5,15 @@ ACTIVE_TAB_RIGHT = "««";
 BAR_MAX_CHARS = 174;
 TAB_COUNT_BEFORE_RESIZE = 6;
 
+PADDING = `
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
+            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0`;
+
 // Get saved options
 let getting = browser.storage.local.get("options");
 getting.then(onGot, onError);
@@ -13,15 +22,17 @@ getting.then(onGot, onError);
 EXTRA_CHARS_COUNT = SEPERATOR.length * (TAB_COUNT_BEFORE_RESIZE-1) + SEPERATOR.length * 2 + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length;
 TAB_MAX_CHARS = Math.floor((BAR_MAX_CHARS - EXTRA_CHARS_COUNT) / 6);
 
+//browser.tabs.onActivated.addListener(listTabs); // dont think needed
+browser.tabs.onDetached.addListener(listTabs); // new window gets updated
+//browser.tabs.onAttached.addListener(listTabs); // new window get updated
+
 // Listen for every possible tab event
-browser.tabs.onMoved.addListener(listTabs);
+browser.tabs.onMoved.addListener(listTabs); // works as expected
 browser.tabs.onUpdated.addListener(listTabs);
-browser.tabs.onDetached.addListener(listTabs);
-browser.tabs.onAttached.addListener(listTabs);
-browser.tabs.onActivated.addListener(listTabs);
 browser.tabs.onRemoved.addListener(
-    (tabId) => { listTabs(tabId);
+    (tabId) => { listTabsRemoved(tabId);
     });
+
 browser.storage.onChanged.addListener(() => {
     let getting = browser.storage.local.get("options");
     getting.then(onGot, onError);
@@ -44,20 +55,8 @@ function onGot(item){
         TAB_COUNT_BEFORE_RESIZE = item.options["tabs"];
     }
 }
-
-// Loops trough each tab appending title to string
-async function listTabs(tabId){
-    PADDING = `${SEPERATOR}
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0`;
-    //await new Promise(r => setTimeout(r, 120));// TODO: find out how to fix this sh*t
+function listTabsRemoved(tabId){
     getCurrentWindowTabs().then((tabs) => {
-        //tabs = tabs.filter(tab => tab.id != tabId);
         let tabsList = '';
         let varLength = tabs.length > TAB_COUNT_BEFORE_RESIZE ?
             (BAR_MAX_CHARS - (SEPERATOR.length * (tabs.length-1) + SEPERATOR.length * 2 + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length)) / tabs.length:
@@ -67,12 +66,32 @@ async function listTabs(tabId){
                 tabsList += `${SEPERATOR}${ACTIVE_TAB_LEFT}` + truncateString(tab.title, varLength) + ACTIVE_TAB_RIGHT;
                 continue;
             }
-            if(arguments.length == 1 && tab.id == tabId){
+            if(tab.id == tabId){
+               continue;
+            }
+            tabsList += SEPERATOR + truncateString(tab.title, varLength);
+        }
+        tabsList += `${SEPERATOR}${PADDING}`;
+        changeTitleWindow(tabs[0].windowId, tabsList);
+    });
+}
+
+// Loops trough each tab appending title to string
+async function listTabs(){
+    await new Promise(r => setTimeout(r, 125));
+    getCurrentWindowTabs().then((tabs) => {
+        let tabsList = '';
+        let varLength = tabs.length > TAB_COUNT_BEFORE_RESIZE ?
+            (BAR_MAX_CHARS - (SEPERATOR.length * (tabs.length-1) + SEPERATOR.length * 2 + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length)) / tabs.length:
+            TAB_MAX_CHARS;
+        for (let tab of tabs){
+            if(tab.active){
+                tabsList += `${SEPERATOR}${ACTIVE_TAB_LEFT}` + truncateString(tab.title, varLength) + ACTIVE_TAB_RIGHT;
                 continue;
             }
             tabsList += SEPERATOR + truncateString(tab.title, varLength);
         }
-        tabsList += PADDING;
+        tabsList += `${SEPERATOR}${PADDING}`;
         changeTitleWindow(tabs[0].windowId, tabsList);
     });
 }
