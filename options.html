@@ -5,11 +5,14 @@
     </head>
     <body>
         <form>
-            <label>Tab seperator<input type="text" id="sep"></label><br>
-            <label>Active tab left indicator<input type="text" id="left"></label><br>
-            <label>Active tab right indicator<input type="text" id="right"></label><br>
-            <label>How many characters to use in the bar(depends on your xsetroot -name)<input type="number" id="max"></label><br>
-            <label>How many tabs before resize or start cycling<input type="number" id="tabs"></label><br><br>
+            <label>Tab seperator<input type="text" id="sep"></label><br><br>
+
+            <label>Active tab left indicator<input type="text" id="left"></label><br><br>
+
+            <label>Active tab right indicator<input type="text" id="right"></label><br><br>
+            <label>How many characters to use in the bar(depends on your xsetroot - use button "Find size of bar" for help<input type="number" id="max"></label><br><br>
+            <label>How many tabs before resize or start cycling(above value / by this = tab size in characters).<br> For cycle mode you should use a odd number, as it tells program how many tabs on each side of active tab.
+                (value-1) /2<br><input type="number" id="tabs"></label><br><br>
             <label>Enable cycling of tabs<input type="checkbox" id="cycle">
             <label>Show number of tabs in cycle mode<input type="checkbox" id="count"><br>
             <button type="submit">Save</button><br>
