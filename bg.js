@@ -42,13 +42,11 @@ browser.tabs.onRemoved.addListener(
     });
 
 browser.storage.onChanged.addListener(() => {
-    console.log(cycling + "inside onchanged listener");
     let get = browser.storage.local.get("options");
     get.then(onGot, onError);
 });
 
 function listTabs(tabId, isOnRemoved){
-    console.log(cycling + "inside listTabs");
     if(cycling){
         tabCycle();
     }else{
@@ -63,7 +61,6 @@ function onGot(item){
     BAR_MAX_CHARS = item.options["max"];
     TAB_COUNT_BEFORE_RESIZE = item.options["tabs"];
     cycling = item.options["cycle"];
-    console.log(cycling + "inside options ongeot");
     showCount  = item.options["count"];
 }
 
