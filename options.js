@@ -7,26 +7,31 @@ function saveOptions(e) {
             right: document.querySelector("#right").value,
             max: document.querySelector("#max").value,
             tabs: document.querySelector("#tabs").value,
+            cycle: document.getElementById("cycle").checked,
+            count: document.getElementById("count").checked,
         }
     });
 }
 
 function restoreOptions() {
 
-  function setCurrentChoice(result) {
-    document.querySelector("#sep").value = result.options["sep"] || " ║ ";
-    document.querySelector("#left").value = result.options["left"] || "»»";
-    document.querySelector("#right").value = result.options["right"] || "««";
-    document.querySelector("#max").value = result.options["max"] || 174;
-    document.querySelector("#tabs").value = result.options["tabs"] || 6;
-  }
+    function setCurrentChoice(result) {
+        document.querySelector("#sep").value = result.options["sep"] || " ║ ";
+        document.querySelector("#left").value = result.options["left"] || "»»";
+        document.querySelector("#right").value = result.options["right"] || "««";
+        document.querySelector("#max").value = result.options["max"] || 174;
+        document.querySelector("#tabs").value = result.options["tabs"] || 6;
+        document.getElementById("cycle").checked = result.options["cycle"] || false;
+        document.getElementById("count").checked = result.options["count"] || false;
+    }
 
-  function onError(error) {
+
+    let getting = browser.storage.local.get("options");
+    getting.then(setCurrentChoice, onError);
+}
+
+function onError(error) {
     console.log(`Error: ${error}`);
-  }
-
-  let getting = browser.storage.local.get("options");
-  getting.then(setCurrentChoice, onError);
 }
 
 function restoreDefaults(){
@@ -37,13 +42,14 @@ function restoreDefaults(){
             right:"««",
             max: 174,
             tabs: 6,
+            cycle: false,
+            count: false,
         }
     });
     restoreOptions();
 }
 
 function onCreated(tab){
-    console.log(`Created new tab: ${tab.id}`)
     browser.tabs.onRemoved.addListener(
     (tabId) => {
         if(tabId == tab.id){
@@ -56,7 +62,7 @@ function openPage(){
     var creating = browser.tabs.create({
         url: "page/index.html"
     });
-    creating.then(onCreated);
+    creating.then(onCreated, onError);
 }
 
 document.addEventListener("DOMContentLoaded", restoreOptions);

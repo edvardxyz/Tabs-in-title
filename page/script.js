@@ -22,7 +22,7 @@ slider.oninput = function() {
 function changeTitleWindow(){
     browser.windows.getCurrent().then((id) => {
         browser.windows.update(id.id, {titlePreface: title});
-    });
+    }, onError);
 
 }
 
@@ -33,7 +33,11 @@ function saveOption(e) {
             max: slider.value,
         }
     });
-    storage.then(window.close);
+    storage.then(window.close, onError);
+}
+
+function onError(error) {
+    console.log(`Error: ${error}`);
 }
 
 document.getElementById("setsize").addEventListener("click", saveOption);
