@@ -1,32 +1,45 @@
-// Set defaults
-SEPERATOR = " ║ ";
-ACTIVE_TAB_LEFT = "»»";
-ACTIVE_TAB_RIGHT = "««";
-BAR_MAX_CHARS = 174;
-TAB_COUNT_BEFORE_RESIZE = 6;
-TABS_AROUND = TAB_COUNT_BEFORE_RESIZE % 2 == 0 ? (TAB_COUNT_BEFORE_RESIZE-2)/2 : (TAB_COUNT_BEFORE_RESIZE-1)/2;
-showCount = false;
-cycling = false;
-PADDING = `
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0
-            \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0`;
-
-// Get settings if set
+padCount = 42;
+PADDING = '';
+for(var i = 0; i < padCount; i++){
+    PADDING += "\xa0\xa0\xa0\xa0\xa0\xa0";
+}
+// Get settings
 let getting = browser.storage.local.get("options");
 getting.then(onGot, onError);
-
-// Calculate size of tabs before resizing
-EXTRA_CHARS_COUNT = SEPERATOR.length * (TAB_COUNT_BEFORE_RESIZE+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length;
-TAB_MAX_CHARS = Math.floor((BAR_MAX_CHARS - EXTRA_CHARS_COUNT) / TAB_COUNT_BEFORE_RESIZE);
-
-//browser.tabs.onActivated.addListener(listTabs);
-//browser.tabs.onAttached.addListener(listTabs);
-
+function onGot(item){
+    if(Object.keys(item).length == 0){
+        browser.storage.local.set({
+            options:{
+                sep: " ║ ",
+                left: "»»",
+                right:"««",
+                max: 174,
+                tabs: 6,
+                cycle: false,
+                count: false,
+            }
+        });
+        let getting = browser.storage.local.get("options");
+        getting.then(onGot, onError);
+        return;
+    }
+    window.SEPERATOR = item.options["sep"];
+    window.ACTIVE_TAB_LEFT = item.options["left"];
+    window.ACTIVE_TAB_RIGHT = item.options["right"];
+    window.BAR_MAX_CHARS = item.options["max"];
+    window.TAB_COUNT_BEFORE_RESIZE = item.options["tabs"];
+    window.cycling = item.options["cycle"];
+    window.showCount  = item.options["count"];
+    // Calculate new values for tabs
+    window.TABS_AROUND = TAB_COUNT_BEFORE_RESIZE % 2 == 0 ? (TAB_COUNT_BEFORE_RESIZE-2)/2 : (TAB_COUNT_BEFORE_RESIZE-1)/2;
+    window.EXTRA_CHARS_COUNT = SEPERATOR.length * (TAB_COUNT_BEFORE_RESIZE+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length;
+    window.TAB_MAX_CHARS = Math.floor((BAR_MAX_CHARS - EXTRA_CHARS_COUNT) / TAB_COUNT_BEFORE_RESIZE);
+}
+// Listen for options changes so no restart needed
+browser.storage.onChanged.addListener(() => {
+    let getting = browser.storage.local.get("options");
+    getting.then(onGot, onError);
+});
 // Listen for possible tab event
 browser.tabs.onMoved.addListener(
     (tabId) => { listTabs(tabId, false);
@@ -40,34 +53,17 @@ browser.tabs.onUpdated.addListener(
 browser.tabs.onRemoved.addListener(
     (tabId) => { listTabs(tabId, true);
     });
-
-browser.storage.onChanged.addListener(() => {
-    let get = browser.storage.local.get("options");
-    get.then(onGot, onError);
-});
-
+// Use tab mode depending on cycling var = false | true
 function listTabs(tabId, isOnRemoved){
-    if(cycling){
+    if(cycling)
         tabCycle();
-    }else{
+    else
         tabResize(tabId, isOnRemoved)
-    }
 }
-
-function onGot(item){
-    SEPERATOR = item.options["sep"];
-    ACTIVE_TAB_LEFT = item.options["left"];
-    ACTIVE_TAB_RIGHT = item.options["right"];
-    BAR_MAX_CHARS = item.options["max"];
-    TAB_COUNT_BEFORE_RESIZE = item.options["tabs"];
-    cycling = item.options["cycle"];
-    showCount  = item.options["count"];
-}
-
-// Loops trough each tab appending title to string
+// Loops through each tab appending every tab title to string and resize when needed
 async function tabResize(tabId, isOnRemoved){
     await new Promise(r => setTimeout(r, 130));
-    getCurrentWindowTabs().then((tabs) => {
+    browser.tabs.query({currentWindow: true}).then((tabs) => {
         let tabsList = '';
         let varLength = tabs.length > TAB_COUNT_BEFORE_RESIZE ?
             (BAR_MAX_CHARS - (SEPERATOR.length * (tabs.length+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length)) / tabs.length:
@@ -83,14 +79,14 @@ async function tabResize(tabId, isOnRemoved){
             tabsList += SEPERATOR + truncateString(tab.title, varLength);
         }
         tabsList += `${SEPERATOR}${PADDING}`;
-        changeTitleWindow(tabs[0].windowId, tabsList);
+        browser.windows.update(tabs[0].windowId, {titlePreface: tabsList});
     }, onError);
 }
-
+// Loop through each tab and append tab title if within range of active tab index
 async function tabCycle(){
     await new Promise(r => setTimeout(r, 130));
-    getCurrentWindowTabActive().then((activeTabs) => {
-        getCurrentWindowTabs().then((tabs) => {
+    browser.tabs.query({currentWindow: true, active: true}).then((activeTabs) => {
+        browser.tabs.query({currentWindow: true}).then((tabs) => {
             let maxIndex = tabs.length-1;
             let activeIndex = activeTabs[0].index;
             addLeft = (TABS_AROUND + activeIndex - maxIndex) > 0 ? TABS_AROUND + activeIndex - maxIndex : 0;
@@ -112,31 +108,18 @@ async function tabCycle(){
             if(showCount == true){
                 tabsList = `[${count.toString()}] ${tabsList}`;
             }
-            changeTitleWindow(tabs[0].windowId, tabsList);
+            browser.windows.update(tabs[0].windowId, {titlePreface: tabsList});
         }, onError);
     }, onError);
 }
-
-function getCurrentWindowTabActive(){
-    return browser.tabs.query({currentWindow: true, active: true});
-}
-
-function getCurrentWindowTabs(){
-    return browser.tabs.query({currentWindow: true});
-}
-
+// Used to truncate tab titles
 function truncateString(string, limit){
-    if(string.length > limit){
+    if(string.length > limit)
         return string.substring(0, limit);
-    }else{
+    else
         return string;
-    }
 }
-
-function changeTitleWindow(id, title){
-    browser.windows.update(id, {titlePreface: title});
-}
-
+// Called if promise failed
 function onError(error){
     console.log(`Error: ${error}`);
 }
