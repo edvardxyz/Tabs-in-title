@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Tabs In Title",
-    "version": "1.5",
+    "version": "1.6",
     "description": "Used in full-screen or kiosk mode with DWM to see tabs in title. And therefore in dwm bar.",
     "background": {
         "scripts": ["bg.js"]

@@ -9,6 +9,7 @@ function saveOptions() {
             count: document.getElementById("count").checked,
             pad: document.querySelector("#pad").value,
             cycleOnTab: document.querySelector("#cycleOnTab").value,
+            padTab: document.getElementById("padTab").checked,
         }
     });
 }
@@ -19,11 +20,12 @@ function restoreOptions() {
         document.querySelector("#sep").value = result.options["sep"] || " ║ ";
         document.querySelector("#left").value = result.options["left"] || "»»";
         document.querySelector("#right").value = result.options["right"] || "««";
-        document.querySelector("#max").value = result.options["max"] || 180;
+        document.querySelector("#max").value = result.options["max"] || 175;
         document.querySelector("#tabs").value = result.options["tabs"] || 6;
         document.getElementById("count").checked = result.options["count"] || false;
         document.querySelector("#pad").value = result.options["pad"] || 42;
         document.querySelector("#cycleOnTab").value = result.options["cycleOnTab"] || 12;
+        document.getElementById("padTab").checked = result.options["padTab"] || false;
     }
 
 
@@ -35,22 +37,6 @@ function onError(error) {
     console.log(`Error: ${error}`);
 }
 
-function restoreDefaults(){
-    browser.storage.local.set({
-        options:{
-            sep: " ║ ",
-            left: "»»",
-            right:"««",
-            max: 180,
-            tabs: 6,
-            count: false,
-            pad: 42,
-            cycleOnTab: 12,
-        }
-    });
-    restoreOptions();
-}
-
 function openPage(){
     browser.tabs.create({
         url: "page/index.html"
@@ -59,5 +45,4 @@ function openPage(){
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
 document.querySelector("form").addEventListener("submit", saveOptions);
-document.getElementById("restore").addEventListener("click", restoreDefaults);
 document.getElementById("findsize").addEventListener("click", openPage);
