@@ -18,26 +18,8 @@ slider.oninput = function() {
             \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0 \xa0`;
     changeTitleWindow();
 }
-
 function changeTitleWindow(){
     browser.windows.getCurrent().then((id) => {
         browser.windows.update(id.id, {titlePreface: title});
-    }, onError);
-
-}
-
-function saveOption(e) {
-    e.preventDefault();
-    var storage = browser.storage.local.set({
-        options:{
-            max: slider.value,
-        }
     });
-    storage.then(window.close, onError);
 }
-
-function onError(error) {
-    console.log(`Error: ${error}`);
-}
-
-document.getElementById("setsize").addEventListener("click", saveOption);

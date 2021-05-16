@@ -8,11 +8,12 @@ function onGot(item){
                 sep: " ║ ",
                 left: "»»",
                 right:"««",
-                max: 180,
+                max: 174,
                 tabs: 6,
+                cycle: false,
                 count: false,
+                around: 3,
                 pad: 42,
-                cycleOnTab: 12,
             }
         });
         let getting = browser.storage.local.get("options");
@@ -24,16 +25,18 @@ function onGot(item){
     window.ACTIVE_TAB_RIGHT = item.options["right"];
     window.BAR_MAX_CHARS = item.options["max"];
     window.TAB_COUNT_BEFORE_RESIZE = item.options["tabs"];
+    window.cycling = item.options["cycle"];
     window.showCount  = item.options["count"];
-    window.CYCLE_OVER_TAB = item.options["cycleOnTab"];
+    window.TABS_AROUND = item.options["around"];
     window.PADDING = '';
     for(var i = 0; i < item.options["pad"]; i++){
         PADDING += "\xa0\xa0\xa0\xa0\xa0\xa0";
     }
     // Calculate new values for tabs
-    window.cycleTabSize = Math.floor((BAR_MAX_CHARS - (SEPERATOR.length * (parseInt(CYCLE_OVER_TAB)+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length)) / CYCLE_OVER_TAB);
-    window.EXTRA_CHARS_COUNT = SEPERATOR.length * (parseInt(TAB_COUNT_BEFORE_RESIZE)+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length;
+    window.EXTRA_CHARS_COUNT = SEPERATOR.length * (TAB_COUNT_BEFORE_RESIZE+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length;
     window.TAB_MAX_CHARS = Math.floor((BAR_MAX_CHARS - EXTRA_CHARS_COUNT) / TAB_COUNT_BEFORE_RESIZE);
+    window.EXTRA_CHARS_AROUND = SEPERATOR.length * (TABS_AROUND*2+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length;
+    window.TAB_AROUND_MAX = Math.floor((BAR_MAX_CHARS - EXTRA_CHARS_AROUND) / (TABS_AROUND*2+1));
 }
 // Listen for options changes so no restart needed
 browser.storage.onChanged.addListener(() => {
@@ -53,43 +56,53 @@ browser.tabs.onUpdated.addListener(
 browser.tabs.onRemoved.addListener(
     (tabId) => { listTabs(tabId, true);
     });
+// Use tab mode depending on cycling var = false | true
+function listTabs(tabId, isOnRemoved){
+    if(cycling)
+        tabCycle();
+    else
+        tabResize(tabId, isOnRemoved)
+}
 // Loops through each tab appending every tab title to string and resize when needed
-async function listTabs(tabId, isOnRemoved){
-    await new Promise(r => setTimeout(r, 125));
+async function tabResize(tabId, isOnRemoved){
+    await new Promise(r => setTimeout(r, 130));
+    browser.tabs.query({currentWindow: true}).then((tabs) => {
+        let tabsList = '';
+        let varLength = tabs.length > TAB_COUNT_BEFORE_RESIZE ?
+            (BAR_MAX_CHARS - (SEPERATOR.length * (tabs.length+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length)) / tabs.length:
+            TAB_MAX_CHARS;
+        for (let tab of tabs){
+            if(tab.active){
+                tabsList += `${SEPERATOR}${ACTIVE_TAB_LEFT}` + truncateString(tab.title, varLength) + ACTIVE_TAB_RIGHT;
+                continue;
+            }
+            if(isOnRemoved && tab.id == tabId){
+               continue;
+            }
+            tabsList += SEPERATOR + truncateString(tab.title, varLength);
+        }
+        tabsList += `${SEPERATOR}${PADDING}`;
+        browser.windows.update(tabs[0].windowId, {titlePreface: tabsList});
+    }, onError);
+}
+// Loop through each tab and append tab title if within range of active tab index
+async function tabCycle(){
+    await new Promise(r => setTimeout(r, 130));
     browser.tabs.query({currentWindow: true, active: true}).then((activeTabs) => {
         browser.tabs.query({currentWindow: true}).then((tabs) => {
-            var tabsList = '';
-            if(tabs.length < CYCLE_OVER_TAB){
-                let varLength = tabs.length > TAB_COUNT_BEFORE_RESIZE ?
-                    (BAR_MAX_CHARS - (SEPERATOR.length * (tabs.length+1) + ACTIVE_TAB_RIGHT.length + ACTIVE_TAB_LEFT.length)) / tabs.length:
-                    TAB_MAX_CHARS;
-                for (let tab of tabs){
+            let maxIndex = tabs.length-1;
+            let activeIndex = activeTabs[0].index;
+            let addLeft = (TABS_AROUND + activeIndex - maxIndex) > 0 ? TABS_AROUND + activeIndex - maxIndex : 0;
+            let addRight = (TABS_AROUND - activeIndex) > 0 ? TABS_AROUND - activeIndex : 0;
+            let tabsList = '';
+            let varLength = TAB_AROUND_MAX;
+            for (let tab of tabs){
+                if(tab.index >= activeIndex-TABS_AROUND-addLeft && tab.index <= activeIndex+TABS_AROUND+addRight){
                     if(tab.active){
                         tabsList += `${SEPERATOR}${ACTIVE_TAB_LEFT}` + truncateString(tab.title, varLength) + ACTIVE_TAB_RIGHT;
                         continue;
                     }
-                    if(isOnRemoved && tab.id == tabId){
-                        continue;
-                    }
                     tabsList += SEPERATOR + truncateString(tab.title, varLength);
-                }
-            }else{
-                let maxIndex = tabs.length-1;
-                let activeIndex = activeTabs[0].index;
-                let TABS_AROUND = Math.floor(CYCLE_OVER_TAB/2);
-                let addLeft = (TABS_AROUND + activeIndex - maxIndex) > 0 ? TABS_AROUND + activeIndex - maxIndex : 0;
-                let addRight = (TABS_AROUND - activeIndex) > 0 ? TABS_AROUND - activeIndex : 0;
-                for (let tab of tabs){
-                    if(tab.index >= activeIndex-TABS_AROUND-addLeft && tab.index <= activeIndex+TABS_AROUND+addRight){
-                        if(tab.active){
-                            tabsList += `${SEPERATOR}${ACTIVE_TAB_LEFT}` + truncateString(tab.title, cycleTabSize) + ACTIVE_TAB_RIGHT;
-                            continue;
-                        }
-                        if(isOnRemoved && tab.id == tabId){
-                            continue;
-                        }
-                        tabsList += SEPERATOR + truncateString(tab.title, cycleTabSize);
-                    }
                 }
             }
             tabsList += `${SEPERATOR}${PADDING}`;

@@ -11,10 +11,13 @@
 
             <label>Active tab right indicator<input type="text" id="right"></label><br><br>
             <label>How many characters to use in the bar(depends on your xsetroot - use button "Find size of bar" for help<input type="number" id="max"></label><br><br>
-            <label>How many tabs before resize or start cycling(above value / by this = tab size in characters).<br> For cycle mode you should use a odd number, as it tells program how many tabs on each side of active tab.
-                (value-1) /2<br><input type="number" id="tabs"></label><br><br>
-            <label>Enable cycling of tabs<input type="checkbox" id="cycle">
-            <label>Show number of tabs in cycle mode<input type="checkbox" id="count"><br>
+            <label>How many tabs before automatic resize(above value / by this = tab size in characters).<br>This way you dont get huge tabs with a few tabs<br><input type="number" id="tabs"></label><br><br>
+            <label>How many tabs before cycling through tabs starts(set 99 to keep resizing tabs)<br><input type="number" id="cycleOnTab"></label><br><br>
+            <label>Show number of tabs<input type="checkbox" id="count"><br><br>
+            <label>Empty character padding. For high resolutions change this to hide text.<br>
+                also you might need to change dwm's 256 char limit with a simple patch like
+                <a href="https://gist.github.com/edvardxyz/598417868b38662d171398f374e8af32">this</a><input type="number" id="pad"></label><br><br>
+
             <button type="submit">Save</button><br>
         </form>
             <button id="restore" style="width: 145px;">Restore defaults</button><br>
